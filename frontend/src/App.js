@@ -1,7 +1,8 @@
-import React from 'react';
+import React, {useState} from 'react';
 import './App.css';
 import {LoginPage} from "./components/login/LoginPage";
 import {makeStyles} from "@material-ui/styles";
+import {VideoConference} from "./components/videoConference/VideoConference";
 
 const useStyles = makeStyles({
     App: {
@@ -13,9 +14,15 @@ const useStyles = makeStyles({
 
 function App() {
     const classes = useStyles();
+    const [username, setUsername] = useState("")
+
+    const getUsername = (username) => {
+        setUsername(username)
+    }
   return (
     <div className= {classes.App}>
-        <LoginPage/>
+        {username !== "" ? <VideoConference username={username}/> : <LoginPage getUsername={getUsername}/>}
+
     </div>
   );
 }
