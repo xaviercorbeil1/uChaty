@@ -4,6 +4,7 @@ import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import {makeStyles} from "@material-ui/styles";
 import socket from "../../socket/socket";
+import Paper from "@material-ui/core/Paper";
 
 const useStyles = makeStyles({
     root: {
@@ -12,48 +13,67 @@ const useStyles = makeStyles({
         justifyContent: "space-around",
         alignItems: "center",
         height: "30%",
-        width: "100%",
+        width: "50%",
+        backgroundColor: "#383a42"
     },
+    typography: {
+        color: "#c4c4c4",
+        fontFamily: "Roboto",
+    },
+    button: {
+        color: "#c4c4c4",
+        backgroundColor: "#25252f",
+        '&:hover': {
+            backgroundColor: "#18181f"
+        }
+    }
 });
 
 export function LoginPage(props) {
     const classes = useStyles()
-    const [username, setUsername] = useState()
+    const [username, setUsername] = useState("")
     const {getUsername} = props
     const [invalidUsername, setUsernameInvalid] = useState(false)
+    const [errorMessage, setErrorMessage] = useState("")
 
     const handleChange = (event) => {
         setUsername(event.target.value)
     }
 
     const checkUsername = () => {
-        if (username !== "") {
-            socket.emit("createUsername", username, (valid) => {
+        const trimUsername = username.trim()
+        if (trimUsername !== "") {
+            socket.emit("createUsername", trimUsername, (valid) => {
                 if (valid) {
                     setUsernameInvalid(false)
-                    getUsername(username)
+                    getUsername(trimUsername)
+                    setUsername(trimUsername)
                 } else {
                     setUsernameInvalid(true)
+                    setErrorMessage("Username already used")
                 }
             })
+        } else {
+            setUsernameInvalid(true)
+            setErrorMessage("Invalid username")
         }
     }
 
     return (
-        <div className={classes.root}>
-            <Typography variant={"h2"}>
+        <Paper className={classes.root}>
+            <Typography className={classes.typography} variant={"h2"}>
                 Welcome to Uvid
             </Typography>
-            <Typography variant={"body1"}>
+            <Typography className={classes.typography} variant={"body1"}>
                 Please enter a username before joining
             </Typography>
-            <TextField error={invalidUsername} helperText={invalidUsername ? "Username already used" : ""}
+            <TextField error={invalidUsername} helperText={invalidUsername ? errorMessage : ""}
                        onChange={handleChange}
-                       variant={"outlined"} label={"Add your name"} className={classes.white}/>
-            <Button onClick={() => {
+                       variant={"outlined"} label={"Add your name"} />
+            <Button className={classes.button} onClick={() => {
                 checkUsername()
             }} variant="contained">Join</Button>
-        </div>
+        </Paper>
     )
 }
 

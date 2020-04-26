@@ -6,7 +6,7 @@ const useStyles = makeStyles({
         display: 'flex',
         position: "relative",
         flexDirection: "column",
-        height: "50%",
+        height: "40%",
         width: "30%",
         backgroundColor: "black",
         alignItems: "center",
