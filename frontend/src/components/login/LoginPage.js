@@ -3,6 +3,7 @@ import Typography from "@material-ui/core/Typography";
 import TextField from "@material-ui/core/TextField";
 import Button from "@material-ui/core/Button";
 import {makeStyles} from "@material-ui/styles";
+import socket from "../../socket/socket";
 
 const useStyles = makeStyles({
     root: {
@@ -19,9 +20,23 @@ export function LoginPage(props) {
     const classes = useStyles()
     const [username, setUsername] = useState()
     const {getUsername} = props
+    const [invalidUsername, setUsernameInvalid] = useState(false)
 
     const handleChange = (event) => {
         setUsername(event.target.value)
+    }
+
+    const checkUsername = () => {
+        if (username !== "") {
+            socket.emit("createUsername", username, (valid) => {
+                if (valid) {
+                    setUsernameInvalid(false)
+                    getUsername(username)
+                } else {
+                    setUsernameInvalid(true)
+                }
+            })
+        }
     }
 
     return (
@@ -30,11 +45,13 @@ export function LoginPage(props) {
                 Welcome to Uvid
             </Typography>
             <Typography variant={"body1"}>
-                Please enter your name before joining
+                Please enter a username before joining
             </Typography>
-            <TextField onChange={handleChange} variant={"outlined"} label={"Add your name"} className={classes.white}/>
+            <TextField error={invalidUsername} helperText={invalidUsername ? "Username already used" : ""}
+                       onChange={handleChange}
+                       variant={"outlined"} label={"Add your name"} className={classes.white}/>
             <Button onClick={() => {
-                getUsername(username)
+                checkUsername()
             }} variant="contained">Join</Button>
         </div>
     )

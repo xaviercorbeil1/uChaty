@@ -9,6 +9,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "shortid": "^2.2.15",
     "socket.io": "^2.3.0"
   },
   "devDependencies": {

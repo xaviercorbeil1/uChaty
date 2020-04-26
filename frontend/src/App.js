@@ -4,10 +4,6 @@ import {LoginPage} from "./components/login/LoginPage";
 import {makeStyles} from "@material-ui/styles";
 import {VideoConference} from "./components/videoConference/VideoConference";
 
-export const baseURL = process.env.REACT_APP_BACKEND_URL;
-
-const io = require("socket.io-client")(baseURL)
-
 const useStyles = makeStyles({
     App: {
         display: "flex",
@@ -20,15 +16,12 @@ function App() {
     const classes = useStyles();
     const [username, setUsername] = useState("")
 
-    io.on("seq-num", (msg) => console.info(msg));
-
     const getUsername = (username) => {
         setUsername(username)
     }
   return (
     <div className= {classes.App}>
         {username !== "" ? <VideoConference username={username}/> : <LoginPage getUsername={getUsername}/>}
-
     </div>
   );
 }
