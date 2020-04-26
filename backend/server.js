@@ -13,7 +13,7 @@ server.on("connection", (socket => {
 
     socket.on("disconnect", () => {
         connectedClient.delete(socket)
-        console.info("Client quit id=${socket.id}]")
+        console.info(`Client quit id=${socket.id}]`)
     })
 }))
 
