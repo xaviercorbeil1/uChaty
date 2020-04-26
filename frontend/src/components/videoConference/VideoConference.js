@@ -5,6 +5,8 @@ import {VideoPlayer} from "./VideoPlayer";
 const useStyles = makeStyles({
     root: {
         display: 'flex',
+        height: "100%",
+        width: "100%"
     },
 });
 
@@ -26,7 +28,7 @@ export function VideoConference(props) {
 
     return (
         <div className={classes.root}>
-            <VideoPlayer isMuted={true} video={videoRef} username={username}/>
+            <VideoPlayer isMuted={false} video={videoRef} username={username}/>
         </div>
     )
 }

@@ -6,8 +6,11 @@ const useStyles = makeStyles({
         display: 'flex',
         position: "relative",
         flexDirection: "column",
-        height: "100%",
-        width: "30%"
+        height: "50%",
+        width: "30%",
+        backgroundColor: "black",
+        alignItems: "center",
+        justifyContent: "center",
     },
     video: {
         width: "100%",
