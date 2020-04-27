@@ -54,7 +54,7 @@ server.on("connection", (socket => {
             giveStatus(false)
         } else {
             console.info(`User created [id=${socketId}] with [user = ${username}]`)
-            const user = new User(username, socketId)
+            user = new User(username, socketId)
             users.set(username, user)
             giveStatus(true)
         }
