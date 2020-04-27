@@ -3,6 +3,7 @@ import {makeStyles} from "@material-ui/styles";
 import {VideoPlayer} from "./VideoPlayer";
 import socket from "../../socket/socket"
 import {VideoConferenceControl} from "./VideoConferenceControl";
+import { useHistory } from "react-router-dom";
 
 const useStyles = makeStyles({
     root: {
@@ -28,9 +29,35 @@ const useStyles = makeStyles({
 
 export function VideoConference(props) {
     const classes = useStyles()
-    const {username} = props
+    const {username, roomId} = props
+    const history = useHistory()
     const videoRef = useRef(null)
     const [isMuted, setMute] = useState(false)
+
+    useEffect(() => {
+        const createVideoConference = () => {
+            socket.emit("createVideoConference", (roomId) => {
+                history.push(`/${roomId}`)
+            })
+        }
+
+        const joinVideoConference = (roomId) => {
+            socket.emit("joinVideoConference", roomId, (data) => {
+                if(data) {
+                    console.log(data)
+                } else {
+                    console.log("error no room")
+                }
+            })
+
+        }
+
+        if (roomId !== "") {
+            joinVideoConference(roomId)
+        } else {
+            createVideoConference()
+        }
+    },[history, roomId])
 
     useEffect(() => {
         if (videoRef) {
@@ -42,18 +69,10 @@ export function VideoConference(props) {
         }
     }, [videoRef])
 
-    useEffect(() => {
-        const createVideoConference = () => {
-            socket.emit("createVideoConference", {username})
-        }
-        createVideoConference()
-    }, [username])
-
-
     return (
         <div className={classes.root}>
             <div className={classes.players}>
-                <VideoPlayer isMuted={false} video={videoRef} username={username}/>
+                <VideoPlayer isMuted={true} video={videoRef} username={username}/>
             </div>
             <div className={classes.control}>
                 <VideoConferenceControl isMuted={isMuted} setMute={setMute}/>
