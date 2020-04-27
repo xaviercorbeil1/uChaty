@@ -4,15 +4,33 @@
   "description": "",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "start:dev": "nodemon server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node -r ts-node/register ./src/server.ts",
+    "start:watch": "nodemon",
+    "build": "tsc"
   },
   "dependencies": {
     "shortid": "^2.2.15",
     "socket.io": "^2.3.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.3"
+    "@types/node": "^13.13.4",
+    "eslint": "^6.8.0",
+    "eslint-plugin-import": "^2.20.2",
+    "nodemon": "^2.0.3",
+    "ts-node": "^8.9.1",
+    "typescript": "^3.8.3"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "**/*.test.ts",
+      "**/*.spec.ts",
+      ".git",
+      "node_modules"
+    ],
+    "watch": [
+      "src"
+    ],
+    "exec": "npm start",
+    "ext": "ts"
   }
 }

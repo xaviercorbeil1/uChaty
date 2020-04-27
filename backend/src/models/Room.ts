@@ -1,12 +1,18 @@
-class Room {
+import {User} from "./User";
+
+export class Room {
+    private readonly _users: User[];
+    private readonly _roomId: string;
+    private readonly maxUser: number;
+
     constructor(roomId) {
         this._roomId = roomId
-        this._maxUser = 5
+        this.maxUser = 5
         this._users = []
     }
 
     addUser(user) {
-        if (this._users.length < this._maxUser && !this.users.includes(user)) {
+        if (this._users.length < this.maxUser && !this._users.includes(user)) {
             this._users.push(user);
         } else {
             throw "Room is full or user already in";
@@ -20,7 +26,12 @@ class Room {
         }
     }
 
-    get users() {
+
+    get roomId(): string {
+        return this._roomId;
+    }
+
+    get users(): User[] {
         return this._users;
     }
 }
