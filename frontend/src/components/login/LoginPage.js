@@ -62,12 +62,12 @@ export function LoginPage(props) {
     return (
         <Paper className={classes.root}>
             <Typography className={classes.typography} variant={"h2"}>
-                Welcome to Uvid
+                Welcome to uChaty
             </Typography>
             <Typography className={classes.typography} variant={"body1"}>
                 Please enter a username before joining
             </Typography>
-            <TextField error={invalidUsername} helperText={invalidUsername ? errorMessage : ""}
+            <TextField autoFocus error={invalidUsername} helperText={invalidUsername ? errorMessage : ""}
                        onChange={handleChange}
                        variant={"outlined"} label={"Add your name"} />
             <Button className={classes.button} onClick={() => {

@@ -50,7 +50,6 @@ server.on("connection", (socket => {
             try {
                 room.addUser(user)
                 console.info(`Video conference joined [id=${roomId}] by [username = ${user.username}]`)
-                console.info(`Video conference [id=${roomId}] has [users = ${room.users.toString()}]`)
             } catch (e) {}
         } else {
             giveUsers(undefined)

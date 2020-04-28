@@ -29,7 +29,7 @@ const useStyles = makeStyles({
 
 export function VideoConference(props) {
     const classes = useStyles()
-    const {username, roomId} = props
+    const {username} = props
     const history = useHistory()
     const videoRef = useRef(null)
     const [isMuted, setMute] = useState(false)
@@ -44,20 +44,23 @@ export function VideoConference(props) {
         const joinVideoConference = (roomId) => {
             socket.emit("joinVideoConference", roomId, (data) => {
                 if(data) {
-                    console.log(data)
+                    if(data.length > 4) {
+                        history.push('/fullroom')
+                    }
                 } else {
-                    console.log("error no room")
+                    history.push('/noroom')
                 }
             })
 
         }
+        const roomId = window.location.pathname.substring(1)
 
         if (roomId !== "") {
             joinVideoConference(roomId)
         } else {
             createVideoConference()
         }
-    },[history, roomId])
+    },[history])
 
     useEffect(() => {
         if (videoRef) {

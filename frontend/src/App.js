@@ -1,9 +1,11 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import './App.css';
 import {LoginPage} from "./components/login/LoginPage";
 import {makeStyles} from "@material-ui/styles";
 import {VideoConference} from "./components/videoConference/VideoConference";
-import { BrowserRouter, Route } from 'react-router-dom';
+import {BrowserRouter, Route} from 'react-router-dom';
+import {Switch} from "react-router";
+import {Unavailable} from "./components/Unavailable/Unavailable";
 
 const useStyles = makeStyles({
     App: {
@@ -18,13 +20,6 @@ const useStyles = makeStyles({
 function App() {
     const classes = useStyles();
     const [username, setUsername] = useState("")
-    const [roomId, setRoomId] = useState("")
-
-    useEffect(() => {
-        const id = window.location.pathname.substring(1)
-        setRoomId(id)
-    }, [])
-
 
     const getUsername = (username) => {
         setUsername(username)
@@ -34,9 +29,18 @@ function App() {
         <BrowserRouter>
             <div className={classes.App}>
                 {username !== "" ?
-                    <Route>
-                        <VideoConference username={username} roomId={roomId}/>
-                    </Route>:
+                    <Switch>
+                        <Route exact path={"/noroom"}>
+                            <Unavailable text={`This room doesn't exist.`}/>
+                        </Route>
+                        <Route exact path={"/fullroom"}>
+                            <Unavailable text={`This room is full.`}/>
+                        </Route>
+                        <Route path={"/"}>
+                            <VideoConference username={username}/>
+                        </Route>
+                    </Switch>
+                    :
                     <Route>
                         <LoginPage getUsername={getUsername}/>
                     </Route>
