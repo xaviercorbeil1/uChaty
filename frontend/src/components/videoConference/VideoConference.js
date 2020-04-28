@@ -3,7 +3,8 @@ import {makeStyles} from "@material-ui/styles";
 import {VideoPlayer} from "./VideoPlayer";
 import socket from "../../socket/socket"
 import {VideoConferenceControl} from "./VideoConferenceControl";
-import { useHistory } from "react-router-dom";
+import {useHistory} from "react-router-dom";
+import Peer from "simple-peer";
 
 const useStyles = makeStyles({
     root: {
@@ -31,51 +32,115 @@ export function VideoConference(props) {
     const classes = useStyles()
     const {username} = props
     const history = useHistory()
-    const videoRef = useRef(null)
+    const videoRef = useRef()
     const [isMuted, setMute] = useState(false)
+    const [peers, setPeers] = useState([])
+    const peersRef = useRef([]);
 
     useEffect(() => {
-        const createVideoConference = () => {
-            socket.emit("createVideoConference", (roomId) => {
-                history.push(`/${roomId}`)
+        navigator.mediaDevices.getUserMedia({video: true, audio: true}).then(stream => {
+            videoRef.current.srcObject = stream
+            console.log("stream")
+            const connectedPeers = []
+            socket.on("get room users", (usernames) => {
+                usernames.forEach(username => {
+                    const peer = createPeer(stream, username)
+                    peersRef.current.push({username: username, peer})
+                    connectedPeers.push(peer)
+                })
+                setPeers(connectedPeers)
             })
-        }
 
-        const joinVideoConference = (roomId) => {
-            socket.emit("joinVideoConference", roomId, (data) => {
-                if(data) {
-                    if(data.length > 4) {
+            socket.on("user joined", (signal, username) => {
+                const peer = addPeer(stream, signal, username)
+                peersRef.current.push({username, peer})
+                setPeers([...peers, peer])
+            })
+
+            socket.on("receive signal", (signal, username) => {
+                const peer = peersRef.current.find(peer => {
+                    return peer.username === username
+                })
+
+                peer.peer.signal(signal)
+            })
+
+            const createVideoConference = () => {
+                socket.emit("createVideoConference", (roomId) => {
+                    history.push(`/${roomId}`)
+                })
+            }
+
+            const joinVideoConference = (roomId) => {
+                socket.emit("joinVideoConference", roomId, (response) => {
+                    if (response === "fullroom") {
                         history.push('/fullroom')
+                    } else if (response === "noroom") {
+                        history.push('/noroom')
                     }
-                } else {
-                    history.push('/noroom')
-                }
+                })
+
+            }
+
+            const roomId = window.location.pathname.substring(1)
+            if (roomId !== "") {
+                joinVideoConference(roomId)
+            } else {
+                createVideoConference()
+            }
+        })
+    }, [videoRef, history])
+
+    function createPeer(stream, username) {
+        const peer = new Peer({
+            initiator: true,
+            trickle: false,
+            stream
+        })
+
+        peer.on("signal", signal => {
+            socket.emit("send signal", username, signal)
+        })
+
+        return peer
+    }
+
+    function addPeer(stream, signalFromUser, username) {
+        const peer = new Peer({
+            initiator: false,
+            trickle: false,
+            stream
+        })
+
+        peer.on("signal", signal => {
+            socket.emit("return signal", username, signal)
+        })
+
+        peer.signal(signalFromUser)
+
+        return peer
+    }
+
+    function PeerVideo(props) {
+        const {peer} = props
+        const videoRef = useRef()
+        useEffect(() => {
+            peer.on("stream", stream => {
+                debugger
+                videoRef.current.srcObject = stream;
             })
+        }, []);
 
-        }
-        const roomId = window.location.pathname.substring(1)
-
-        if (roomId !== "") {
-            joinVideoConference(roomId)
-        } else {
-            createVideoConference()
-        }
-    },[history])
-
-    useEffect(() => {
-        if (videoRef) {
-            navigator.mediaDevices.getUserMedia({video: true, audio: true}).then(stream => {
-                const video = videoRef.current
-                video.srcObject = stream
-                video.play()
-            })
-        }
-    }, [videoRef])
+        return <VideoPlayer isMuted={false} video={videoRef} username={"testing"}/>
+    }
 
     return (
         <div className={classes.root}>
             <div className={classes.players}>
                 <VideoPlayer isMuted={true} video={videoRef} username={username}/>
+                {peers.map((peer,index) =>
+                    <PeerVideo peer={peer} key={index}/>
+                )}
             </div>
             <div className={classes.control}>
                 <VideoConferenceControl isMuted={isMuted} setMute={setMute}/>

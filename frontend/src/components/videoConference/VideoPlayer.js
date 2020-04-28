@@ -33,10 +33,9 @@ export function VideoPlayer(props) {
     const classes = useStyles()
     const {video, username, isMuted} = props
 
-
     return (
         <div className={classes.root}>
-                <video muted={isMuted} ref={video} className={classes.video}/>
+            <video autoPlay muted={isMuted} ref={video} className={classes.video}/>
             <div className={classes.username}>{username}</div>
         </div>
     )

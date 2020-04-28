@@ -9,7 +9,7 @@ const useStyles = makeStyles({
     root: {
         display: 'flex',
         flexDirection: 'row',
-        justifyContent: "space-around",
+        justifyContent: "center",
         alignItems: "center",
         height: "100%",
         width: "100%",

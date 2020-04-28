@@ -46,13 +46,15 @@ server.on("connection", (socket => {
     socket.on('joinVideoConference', (roomId, giveUsers) => {
         if (rooms.has(roomId)) {
             room = rooms.get(roomId)
-            giveUsers(room.users)
             try {
+                socket.emit("get room users", room.usernames);
                 room.addUser(user)
                 console.info(`Video conference joined [id=${roomId}] by [username = ${user.username}]`)
-            } catch (e) {}
+            } catch (e) {
+                giveUsers("fullroom")
+            }
         } else {
-            giveUsers(undefined)
+            giveUsers("noroom")
         }
     })
 
@@ -66,4 +68,22 @@ server.on("connection", (socket => {
             giveStatus(true)
         }
     })
+
+    socket.on("send signal", (username, signal) => {
+        const user = users.get(username)
+        if(user) {
+            console.log(`signal from ${username}`)
+            socket.to(user.socketId).emit("user joined", signal, username)
+        }
+    })
+
+    socket.on("return signal", (username, signal) => {
+        const user = users.get(username)
+        if(user) {
+            socket.to(user.socketId).emit("receive signal", signal, username)
+        }
+    })
+
+
 }))
+

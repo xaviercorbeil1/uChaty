@@ -34,6 +34,14 @@ export class Room {
     get users(): User[] {
         return this._users;
     }
+
+    get usernames(): string[] {
+        const usernames = []
+        this.users.forEach(user => {
+          usernames.push(user.username)
+        })
+        return usernames
+    }
 }
 
 module.exports.Room = Room
