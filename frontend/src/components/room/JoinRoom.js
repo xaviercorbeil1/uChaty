@@ -19,7 +19,6 @@ export function JoinRoom(props) {
                     history.push('/noroom')
                     break
                 default:
-                    console.log(`Joined room ${roomId}`)
                     setJoined(true)
             }
         })

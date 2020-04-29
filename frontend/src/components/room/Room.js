@@ -56,7 +56,6 @@ export const Room = (props) => {
             })
 
             socket.on("receive signal", (signal, username) => {
-                console.log("receiving signal")
                 const peer = peersRef.current.find(peer => {
                     return peer.username === username
                 })
@@ -64,8 +63,6 @@ export const Room = (props) => {
             })
 
             socket.on("user left", (username) => {
-                console.log(peers)
-                console.log(`left user = ${username}`)
                 peersRef.current = peersRef.current.filter(userRef => {
                     if (userRef.username === username) {
                         userRef.peer.destroy()
@@ -77,7 +74,6 @@ export const Room = (props) => {
                 const peersCopy = [...peers]
                 peersCopy.slice(index)
                 setPeers(peersCopy)
-
             })
         })
     },[])
@@ -91,6 +87,10 @@ export const Room = (props) => {
 
         peer.on("signal", signal => {
             socket.emit("send signal", usernameToSignal, callerUsername, signal)
+        })
+
+        peer.on('close', () => {
+            peer.destroy()
         })
 
         return peer
@@ -109,6 +109,10 @@ export const Room = (props) => {
             }
         })
 
+        peer.on('close', () => {
+            peer.destroy()
+        })
+
         peer.signal(signalFromUser)
         return peer
     }
@@ -117,8 +121,9 @@ export const Room = (props) => {
         <div className={classes.root}>
             <div className={classes.players}>
                 <VideoPlayer isMuted={true} video={videoRef} username={username}/>
+                {console.log(peersRef)}
                 {peersRef.current.map((peerRef, index) => {
-                        return (<PeerVideo peer={peerRef.peer} key={index}/>)
+                        return (<PeerVideo peer={peerRef.peer} username={peerRef.username} key={index}/>)
                     }
                 )}
             </div>
