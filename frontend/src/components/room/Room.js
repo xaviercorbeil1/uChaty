@@ -60,6 +60,18 @@ export function Room(props) {
                 })
                 peer.peer.signal(signal)
             })
+
+            socket.on("user left", (username) => {
+                const peerRef = peersRef.current.find(userRef => {
+                    return userRef.username === username
+                })
+
+                let index = peers.indexOf(peerRef.peer)
+                peers.slice(index, 1)
+
+                index = peersRef.current.indexOf(peerRef)
+                peerRef.slice(index, 1)
+            })
         })
     }, [])
 

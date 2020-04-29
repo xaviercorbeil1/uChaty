@@ -25,6 +25,9 @@ server.on("connection", (socket => {
 
         if (room) {
             room.removeUser(user)
+            room.users.forEach(roomUser => {
+                socket.to(roomUser.socketId).emit("user left",user.username)
+            })
             console.info(`User [user = ${user.username}] left the room [id=${room.roomId}]`)
         }
 
@@ -73,8 +76,6 @@ server.on("connection", (socket => {
         const userToSignal = users.get(usernameToSignal)
 
         if(userToSignal) {
-            console.log(`User to ${userToSignal.username}`)
-            console.log(`User from ${callUsername}`)
             socket.to(userToSignal.socketId).emit("user joined", signal, callUsername)
         }
     })
