@@ -32,7 +32,6 @@ export const Room = (props) => {
     const classes = useStyles()
     const {username} = props
     const videoRef = useRef()
-    const [isMuted, setMute] = useState(false)
     const [peers, setPeers] = useState([])
     const peersRef = useRef([]);
 
@@ -121,14 +120,13 @@ export const Room = (props) => {
         <div className={classes.root}>
             <div className={classes.players}>
                 <VideoPlayer isMuted={true} video={videoRef} username={username}/>
-                {console.log(peersRef)}
-                {peersRef.current.map((peerRef, index) => {
-                        return (<PeerVideo peer={peerRef.peer} username={peerRef.username} key={index}/>)
+                {peersRef.current.map((peerRef) => {
+                        return (<PeerVideo peer={peerRef.peer} username={peerRef.username} key={peerRef.username}/>)
                     }
                 )}
             </div>
             <div className={classes.control}>
-                <RoomControl isMuted={isMuted} setMute={setMute}/>
+                <RoomControl/>
             </div>
         </div>
     )

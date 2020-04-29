@@ -29,13 +29,9 @@ const useStyles = makeStyles({
 
 export function RoomControl(props) {
     const classes = useStyles()
-    const {isMuted, setMute} = props
 
     return (
         <div className={classes.root}>
-            <IconButton onClick={() => setMute(!isMuted)} className={classes.button}>
-                {isMuted ? <MicOff/> : <Mic/>}
-            </IconButton>
             <TextField className={classes.textfield} disabled label={`Invite link`} variant={"outlined"} defaultValue={window.location.href}
                        size={"medium"}/>
         </div>
