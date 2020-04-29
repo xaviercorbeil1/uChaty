@@ -70,7 +70,7 @@ export function Room(props) {
                 peers.slice(index, 1)
 
                 index = peersRef.current.indexOf(peerRef)
-                peerRef.slice(index, 1)
+                peersRef.slice(index, 1)
             })
         })
     }, [])
