@@ -43,13 +43,13 @@ server.on("connection", (socket => {
         giveRoomId(id)
     })
 
-    socket.on('joinVideoConference', (roomId, giveUsers) => {
+    socket.on('joinRoom', (roomId, giveUsers) => {
         if (rooms.has(roomId)) {
             room = rooms.get(roomId)
             try {
-                socket.emit("get room users", room.usernames);
                 room.addUser(user)
                 console.info(`Video conference joined [id=${roomId}] by [username = ${user.username}]`)
+                giveUsers("ok")
             } catch (e) {
                 giveUsers("fullroom")
             }
@@ -69,21 +69,29 @@ server.on("connection", (socket => {
         }
     })
 
-    socket.on("send signal", (username, signal) => {
-        const user = users.get(username)
-        if(user) {
-            console.log(`signal from ${username}`)
-            socket.to(user.socketId).emit("user joined", signal, username)
+    socket.on("send signal", (usernameToSignal,callUsername, signal) => {
+        const userToSignal = users.get(usernameToSignal)
+
+        if(userToSignal) {
+            console.log(`User to ${userToSignal.username}`)
+            console.log(`User from ${callUsername}`)
+            socket.to(userToSignal.socketId).emit("user joined", signal, callUsername)
         }
     })
 
-    socket.on("return signal", (username, signal) => {
-        const user = users.get(username)
-        if(user) {
-            socket.to(user.socketId).emit("receive signal", signal, username)
+    socket.on("return signal", (callerUsername, signal) => {
+        const caller = users.get(callerUsername)
+        if(caller) {
+            socket.to(caller.socketId).emit("receive signal", signal, user.username)
         }
     })
 
-
+    socket.on("get room users", (giveRoomUsernames) => {
+        const allUsernames = room.usernames
+        const roomUsers = allUsernames.filter(aUsername => {
+            return aUsername !== user.username;
+        })
+        giveRoomUsernames(roomUsers)
+    });
 }))
 

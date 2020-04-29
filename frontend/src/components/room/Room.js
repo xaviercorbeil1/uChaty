@@ -2,8 +2,7 @@ import React, {useEffect, useRef, useState} from 'react';
 import {makeStyles} from "@material-ui/styles";
 import {VideoPlayer} from "./VideoPlayer";
 import socket from "../../socket/socket"
-import {VideoConferenceControl} from "./VideoConferenceControl";
-import {useHistory} from "react-router-dom";
+import {RoomControl} from "./RoomControl";
 import Peer from "simple-peer";
 
 const useStyles = makeStyles({
@@ -28,92 +27,67 @@ const useStyles = makeStyles({
     }
 });
 
-export function VideoConference(props) {
+export function Room(props) {
     const classes = useStyles()
     const {username} = props
-    const history = useHistory()
     const videoRef = useRef()
     const [isMuted, setMute] = useState(false)
     const [peers, setPeers] = useState([])
     const peersRef = useRef([]);
 
     useEffect(() => {
-        navigator.mediaDevices.getUserMedia({video: true, audio: true}).then(stream => {
+        navigator.mediaDevices.getUserMedia({audio: true, video: true}).then(stream => {
             videoRef.current.srcObject = stream
-            console.log("stream")
-            const connectedPeers = []
-            socket.on("get room users", (usernames) => {
-                usernames.forEach(username => {
-                    const peer = createPeer(stream, username)
-                    peersRef.current.push({username: username, peer})
+            socket.emit("get room users", (roomUsers) => {
+                const connectedPeers = []
+                roomUsers.forEach(roomUser => {
+                    const peer = createPeer(stream, roomUser, username)
+                    peersRef.current.push({username: roomUser, peer})
                     connectedPeers.push(peer)
                 })
                 setPeers(connectedPeers)
             })
 
-            socket.on("user joined", (signal, username) => {
-                const peer = addPeer(stream, signal, username)
-                peersRef.current.push({username, peer})
-                setPeers([...peers, peer])
+            socket.on("user joined", (signal, user) => {
+                const peer = addPeer(stream, signal, user)
+                peersRef.current.push({username: user, peer})
+                setPeers(peers => [...peers, peer])
             })
 
             socket.on("receive signal", (signal, username) => {
                 const peer = peersRef.current.find(peer => {
                     return peer.username === username
                 })
-
                 peer.peer.signal(signal)
             })
-
-            const createVideoConference = () => {
-                socket.emit("createVideoConference", (roomId) => {
-                    history.push(`/${roomId}`)
-                })
-            }
-
-            const joinVideoConference = (roomId) => {
-                socket.emit("joinVideoConference", roomId, (response) => {
-                    if (response === "fullroom") {
-                        history.push('/fullroom')
-                    } else if (response === "noroom") {
-                        history.push('/noroom')
-                    }
-                })
-
-            }
-
-            const roomId = window.location.pathname.substring(1)
-            if (roomId !== "") {
-                joinVideoConference(roomId)
-            } else {
-                createVideoConference()
-            }
         })
-    }, [videoRef, history])
+    }, [])
 
-    function createPeer(stream, username) {
+    function createPeer(stream, usernameToSignal, callerUsername) {
         const peer = new Peer({
             initiator: true,
             trickle: false,
-            stream
+            stream: stream
         })
 
         peer.on("signal", signal => {
-            socket.emit("send signal", username, signal)
+            socket.emit("send signal", usernameToSignal, callerUsername, signal)
         })
 
         return peer
     }
 
-    function addPeer(stream, signalFromUser, username) {
+    function addPeer(stream, signalFromUser, callerUsername) {
         const peer = new Peer({
             initiator: false,
             trickle: false,
-            stream
+            stream: stream
         })
 
         peer.on("signal", signal => {
-            socket.emit("return signal", username, signal)
+            if(signal.type) {
+                socket.emit("return signal", callerUsername, signal)
+            }
         })
 
         peer.signal(signalFromUser)
@@ -126,7 +100,6 @@ export function VideoConference(props) {
         const videoRef = useRef()
         useEffect(() => {
             peer.on("stream", stream => {
-                debugger
                 videoRef.current.srcObject = stream;
             })
         }, []);
@@ -138,12 +111,12 @@ export function VideoConference(props) {
         <div className={classes.root}>
             <div className={classes.players}>
                 <VideoPlayer isMuted={true} video={videoRef} username={username}/>
-                {peers.map((peer,index) =>
+                {peers.map((peer, index) =>
                     <PeerVideo peer={peer} key={index}/>
                 )}
             </div>
             <div className={classes.control}>
-                <VideoConferenceControl isMuted={isMuted} setMute={setMute}/>
+                <RoomControl isMuted={isMuted} setMute={setMute}/>
             </div>
         </div>
     )

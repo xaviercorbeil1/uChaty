@@ -27,7 +27,7 @@ const useStyles = makeStyles({
     }
 });
 
-export function VideoConferenceControl(props) {
+export function RoomControl(props) {
     const classes = useStyles()
     const {isMuted, setMute} = props
 
