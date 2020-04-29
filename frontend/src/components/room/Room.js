@@ -35,47 +35,56 @@ export const Room = (props) => {
     const [peers, setPeers] = useState([])
     const peersRef = useRef([]);
 
+    const loadEvent = (stream) => {
+        socket.emit("get room users", (roomUsers) => {
+            const connectedPeers = []
+            roomUsers.forEach(roomUser => {
+                const peer = createPeer(stream, roomUser, username)
+                peersRef.current.push({username: roomUser, peer})
+                connectedPeers.push(roomUser)
+            })
+            setPeers(connectedPeers)
+        })
+
+        socket.on("user joined", (signal, user) => {
+            const peer = addPeer(stream, signal, user)
+            peersRef.current.push({username: user, peer})
+            setPeers(peers => [...peers, user])
+        })
+
+        socket.on("receive signal", (signal, username) => {
+            const peer = peersRef.current.find(peer => {
+                return peer.username === username
+            })
+            peer.peer.signal(signal)
+        })
+
+        socket.on("user left", (username) => {
+            peersRef.current = peersRef.current.filter(userRef => {
+                if (userRef.username === username) {
+                    userRef.peer.destroy()
+                }
+                return userRef.username !== username
+            })
+
+            const index = peers.indexOf(username)
+            const peersCopy = [...peers]
+            peersCopy.slice(index)
+            setPeers(peersCopy)
+        })
+    }
+
     useEffect(() => {
         navigator.mediaDevices.getUserMedia({audio: true, video: true}).then(stream => {
             videoRef.current.srcObject = stream
-            socket.emit("get room users", (roomUsers) => {
-                const connectedPeers = []
-                roomUsers.forEach(roomUser => {
-                    const peer = createPeer(stream, roomUser, username)
-                    peersRef.current.push({username: roomUser, peer})
-                    connectedPeers.push(roomUser)
-                })
-                setPeers(connectedPeers)
-            })
-
-            socket.on("user joined", (signal, user) => {
-                const peer = addPeer(stream, signal, user)
-                peersRef.current.push({username: user, peer})
-                setPeers(peers => [...peers, user])
-            })
-
-            socket.on("receive signal", (signal, username) => {
-                const peer = peersRef.current.find(peer => {
-                    return peer.username === username
-                })
-                peer.peer.signal(signal)
-            })
-
-            socket.on("user left", (username) => {
-                peersRef.current = peersRef.current.filter(userRef => {
-                    if (userRef.username === username) {
-                        userRef.peer.destroy()
-                    }
-                    return userRef.username !== username
-                })
-
-                const index = peers.indexOf(username)
-                const peersCopy = [...peers]
-                peersCopy.slice(index)
-                setPeers(peersCopy)
+            loadEvent(stream)
+        }).catch(() => {
+            navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
+                videoRef.current.srcObject = stream
+                loadEvent(stream)
             })
         })
-    },[])
+    }, [])
 
     function createPeer(stream, usernameToSignal, callerUsername) {
         const peer = new Peer({

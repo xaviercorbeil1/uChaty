@@ -1,8 +1,5 @@
 import React from 'react';
 import {makeStyles} from "@material-ui/styles";
-import IconButton from "@material-ui/core/IconButton";
-import Mic from '@material-ui/icons/Mic';
-import MicOff from '@material-ui/icons/MicOff';
 import TextField from "@material-ui/core/TextField";
 
 const useStyles = makeStyles({
