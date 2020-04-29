@@ -4,6 +4,7 @@ import {VideoPlayer} from "./VideoPlayer";
 import socket from "../../socket/socket"
 import {RoomControl} from "./RoomControl";
 import Peer from "simple-peer";
+import {PeerVideo} from "./PeerVideo";
 
 const useStyles = makeStyles({
     root: {
@@ -27,7 +28,7 @@ const useStyles = makeStyles({
     }
 });
 
-export function Room(props) {
+export const Room = (props) => {
     const classes = useStyles()
     const {username} = props
     const videoRef = useRef()
@@ -43,7 +44,7 @@ export function Room(props) {
                 roomUsers.forEach(roomUser => {
                     const peer = createPeer(stream, roomUser, username)
                     peersRef.current.push({username: roomUser, peer})
-                    connectedPeers.push(peer)
+                    connectedPeers.push(roomUser)
                 })
                 setPeers(connectedPeers)
             })
@@ -51,10 +52,11 @@ export function Room(props) {
             socket.on("user joined", (signal, user) => {
                 const peer = addPeer(stream, signal, user)
                 peersRef.current.push({username: user, peer})
-                setPeers(peers => [...peers, peer])
+                setPeers(peers => [...peers, user])
             })
 
             socket.on("receive signal", (signal, username) => {
+                console.log("receiving signal")
                 const peer = peersRef.current.find(peer => {
                     return peer.username === username
                 })
@@ -62,18 +64,23 @@ export function Room(props) {
             })
 
             socket.on("user left", (username) => {
-                const peerRef = peersRef.current.find(userRef => {
-                    return userRef.username === username
+                console.log(peers)
+                console.log(`left user = ${username}`)
+                peersRef.current = peersRef.current.filter(userRef => {
+                    if (userRef.username === username) {
+                        userRef.peer.destroy()
+                    }
+                    return userRef.username !== username
                 })
 
-                let index = peers.indexOf(peerRef.peer)
-                peers.slice(index, 1)
+                const index = peers.indexOf(username)
+                const peersCopy = [...peers]
+                peersCopy.slice(index)
+                setPeers(peersCopy)
 
-                index = peersRef.current.indexOf(peerRef)
-                peersRef.slice(index, 1)
             })
         })
-    }, [])
+    },[])
 
     function createPeer(stream, usernameToSignal, callerUsername) {
         const peer = new Peer({
@@ -97,34 +104,22 @@ export function Room(props) {
         })
 
         peer.on("signal", signal => {
-            if(signal.type) {
+            if (signal.type) {
                 socket.emit("return signal", callerUsername, signal)
             }
         })
 
         peer.signal(signalFromUser)
-
         return peer
-    }
-
-    function PeerVideo(props) {
-        const {peer} = props
-        const videoRef = useRef()
-        useEffect(() => {
-            peer.on("stream", stream => {
-                videoRef.current.srcObject = stream;
-            })
-        }, []);
-
-        return <VideoPlayer isMuted={false} video={videoRef} username={"testing"}/>
     }
 
     return (
         <div className={classes.root}>
             <div className={classes.players}>
                 <VideoPlayer isMuted={true} video={videoRef} username={username}/>
-                {peers.map((peer, index) =>
-                    <PeerVideo peer={peer} key={index}/>
+                {peersRef.current.map((peerRef, index) => {
+                        return (<PeerVideo peer={peerRef.peer} key={index}/>)
+                    }
                 )}
             </div>
             <div className={classes.control}>
