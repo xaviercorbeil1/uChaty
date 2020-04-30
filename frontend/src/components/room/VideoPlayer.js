@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react';
+import React from 'react';
 import {makeStyles} from "@material-ui/styles";
 
 const useStyles = makeStyles({

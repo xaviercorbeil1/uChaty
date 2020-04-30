@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {makeStyles} from "@material-ui/styles";
 import {VideoPlayer} from "./VideoPlayer";
 import socket from "../../socket/socket"
