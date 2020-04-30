@@ -66,7 +66,6 @@ export const Room = (props) => {
 
         socket.on("user left", (username) => {
             peers.delete(username)
-
             const updatePeers = []
             peers.forEach((value, key) => {
                 updatePeers.push({username: key, stream: value.stream})

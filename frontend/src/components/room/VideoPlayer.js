@@ -35,9 +35,6 @@ export function VideoPlayer(props) {
 
     function createVideoElement(element) {
         if (stream && element) {
-            console.log(stream)
-            console.log(element)
-
             element.srcObject = stream
         }
     }
