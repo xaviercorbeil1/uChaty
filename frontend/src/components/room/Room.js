@@ -1,10 +1,10 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {makeStyles} from "@material-ui/styles";
 import {VideoPlayer} from "./VideoPlayer";
 import socket from "../../socket/socket"
 import {RoomControl} from "./RoomControl";
 import Peer from "simple-peer";
-import {PeerVideo} from "./PeerVideo";
+import {useHistory} from "react-router-dom";
 
 const useStyles = makeStyles({
     root: {
@@ -31,60 +31,64 @@ const useStyles = makeStyles({
 export const Room = (props) => {
     const classes = useStyles()
     const {username} = props
-    const videoRef = useRef()
-    const [peers, setPeers] = useState([])
-    const peersRef = useRef([]);
+    const [video, setVideo] = useState()
+    const [peerStreams, setPeerStreams] = useState([]);
+    const history = useHistory()
 
-    const loadEvent = (stream) => {
+
+    const loadEvent = useCallback((stream) => {
+        const peers = new Map()
+
         socket.emit("get room users", (roomUsers) => {
-            const connectedPeers = []
             roomUsers.forEach(roomUser => {
                 const peer = createPeer(stream, roomUser, username)
-                peersRef.current.push({username: roomUser, peer})
-                connectedPeers.push(roomUser)
+                peers.set(roomUser, {stream, peer})
+
+                peer.on("stream", stream => {
+                    setPeerStreams(prevState => [...prevState, {username: roomUser, stream}])
+                    peers.get(roomUser).stream = stream
+                })
             })
-            setPeers(connectedPeers)
         })
 
         socket.on("user joined", (signal, user) => {
             const peer = addPeer(stream, signal, user)
-            peersRef.current.push({username: user, peer})
-            setPeers(peers => [...peers, user])
+            peers.set(user, {peer, stream: undefined})
+            peer.on("stream", stream => {
+                setPeerStreams(prevState => [...prevState, {username: user, stream}])
+                peers.get(user).stream = stream
+            })
         })
 
         socket.on("receive signal", (signal, username) => {
-            const peer = peersRef.current.find(peer => {
-                return peer.username === username
-            })
-            peer.peer.signal(signal)
+            peers.get(username).peer.signal(signal)
         })
 
         socket.on("user left", (username) => {
-            peersRef.current = peersRef.current.filter(userRef => {
-                if (userRef.username === username) {
-                    userRef.peer.destroy()
-                }
-                return userRef.username !== username
-            })
+            peers.delete(username)
 
-            const index = peers.indexOf(username)
-            const peersCopy = [...peers]
-            peersCopy.slice(index)
-            setPeers(peersCopy)
+            const updatePeers = []
+            peers.forEach((value, key) => {
+                updatePeers.push({username: key, stream: value.stream})
+            })
+            setPeerStreams(updatePeers)
         })
-    }
+    }, [username])
 
     useEffect(() => {
         navigator.mediaDevices.getUserMedia({audio: true, video: true}).then(stream => {
-            videoRef.current.srcObject = stream
+            setVideo(stream)
             loadEvent(stream)
         }).catch(() => {
             navigator.mediaDevices.getUserMedia({audio: true}).then(stream => {
-                videoRef.current.srcObject = stream
+                setVideo(stream)
                 loadEvent(stream)
+            }).catch(() => {
+                history.push('/')
             })
         })
-    }, [])
+
+    }, [history, loadEvent])
 
     function createPeer(stream, usernameToSignal, callerUsername) {
         const peer = new Peer({
@@ -124,13 +128,12 @@ export const Room = (props) => {
         peer.signal(signalFromUser)
         return peer
     }
-
     return (
         <div className={classes.root}>
             <div className={classes.players}>
-                <VideoPlayer isMuted={true} video={videoRef} username={username}/>
-                {peersRef.current.map((peerRef) => {
-                        return (<PeerVideo peer={peerRef.peer} username={peerRef.username} key={peerRef.username}/>)
+                <VideoPlayer isMuted={true} stream={video} username={username}/>
+                {peerStreams.map((peer) => {
+                        return (<VideoPlayer stream={peer.stream} username={peer.username} key={peer.username}/>)
                     }
                 )}
             </div>

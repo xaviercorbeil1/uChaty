@@ -1,4 +1,4 @@
-import React, { useState} from 'react';
+import React, {useState} from 'react';
 import './App.css';
 import {LoginPage} from "./components/login/LoginPage";
 import {makeStyles} from "@material-ui/styles";
@@ -8,6 +8,7 @@ import {Switch} from "react-router";
 import {Unavailable} from "./components/Unavailable/Unavailable";
 import {AddRoom} from "./components/room/AddRoom";
 import {JoinRoom} from "./components/room/JoinRoom";
+import {NoInput} from "./components/Unavailable/NoInput";
 
 const useStyles = makeStyles({
     App: {
@@ -33,9 +34,15 @@ function App() {
             <div className={classes.App}>
                 {username !== "" ?
                     <>
-                        {joined ? <Route path={"/room/:roomId"}>
-                                <Room username={username}/>
-                            </Route> :
+                        {joined ? <Switch>
+                                <Route path={"/room/:roomId"}>
+                                    <Room username={username}/>
+                                </Route>
+                                <Route exact path={"/"}>
+                                    <NoInput/>
+                                </Route>
+                            </Switch>
+                            :
                             <Switch>
                                 <Route exact path={"/"}>
                                     <AddRoom setJoined={setJoined}/>

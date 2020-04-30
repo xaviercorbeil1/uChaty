@@ -6,7 +6,7 @@ import {makeStyles} from "@material-ui/styles";
 import socket from "../../socket/socket";
 import Paper from "@material-ui/core/Paper";
 
-const useStyles = makeStyles({
+const useStyles = makeStyles((theme) => ({
     root: {
         display: 'flex',
         flexDirection: 'column',
@@ -15,6 +15,7 @@ const useStyles = makeStyles({
         height: "30%",
         width: "50%",
         backgroundColor: "#383a42"
+
     },
     typography: {
         color: "#c4c4c4",
@@ -27,7 +28,7 @@ const useStyles = makeStyles({
             backgroundColor: "#18181f"
         }
     }
-});
+}));
 
 export function LoginPage(props) {
     const classes = useStyles()
@@ -61,10 +62,10 @@ export function LoginPage(props) {
 
     return (
         <Paper className={classes.root}>
-            <Typography className={classes.typography} variant={"h2"}>
+            <Typography className={classes.typography} variant={"h2"} align={"center"}>
                 Welcome to uChaty
             </Typography>
-            <Typography className={classes.typography} variant={"body1"}>
+            <Typography className={classes.typography} variant={"body1"} align={"center"}>
                 Please enter a username before joining
             </Typography>
             <TextField autoFocus error={invalidUsername} helperText={invalidUsername ? errorMessage : ""}

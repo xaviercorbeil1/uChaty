@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {makeStyles} from "@material-ui/styles";
 
 const useStyles = makeStyles({
@@ -31,11 +31,19 @@ const useStyles = makeStyles({
 
 export function VideoPlayer(props) {
     const classes = useStyles()
-    const {video, username, isMuted} = props
+    const {stream, username, isMuted} = props
 
+    function createVideoElement(element) {
+        if (stream && element) {
+            console.log(stream)
+            console.log(element)
+
+            element.srcObject = stream
+        }
+    }
     return (
         <div className={classes.root}>
-            <video autoPlay muted={isMuted} ref={video} className={classes.video}/>
+            <video id={`video-${username}`} ref={createVideoElement} onLoad={createVideoElement} autoPlay muted={isMuted} className={classes.video}/>
             <div className={classes.username}>{username}</div>
         </div>
     )
