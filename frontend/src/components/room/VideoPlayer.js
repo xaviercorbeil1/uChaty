@@ -1,5 +1,6 @@
 import React from 'react';
 import {makeStyles} from "@material-ui/styles";
+import ReactPlayer from "react-player";
 
 const useStyles = makeStyles({
     root: {
@@ -33,14 +34,9 @@ export function VideoPlayer(props) {
     const classes = useStyles()
     const {stream, username, isMuted} = props
 
-    function createVideoElement(element) {
-        if (stream && element) {
-            element.srcObject = stream
-        }
-    }
     return (
         <div className={classes.root}>
-            <video id={`video-${username}`} ref={createVideoElement} onLoad={createVideoElement} autoPlay muted={isMuted} className={classes.video}/>
+            <ReactPlayer url={stream} width='100%' height='100%'  muted={isMuted} className={classes.video} playing controls/>
             <div className={classes.username}>{username}</div>
         </div>
     )
