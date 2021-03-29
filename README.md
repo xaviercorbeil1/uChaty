@@ -1,3 +1,5 @@
+Uchaty est une application qui permet de faire une conférence video à l'aide de la technologie WebRTC
+
 # FrontEnd
 https://uchaty.herokuapp.com/
 
